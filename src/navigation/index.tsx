@@ -1,0 +1,256 @@
+import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Text, View, StyleSheet } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { LoadingScreen } from '../components';
+import { colors, typography } from '../theme';
+
+import LoginScreen from '../screens/LoginScreen';
+import CampsScreen from '../screens/CampsScreen';
+import CampDetailScreen from '../screens/CampDetailScreen';
+import TrainersScreen from '../screens/TrainersScreen';
+import TrainerDetailScreen from '../screens/TrainerDetailScreen';
+import ScheduleScreen from '../screens/ScheduleScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import OnboardingScreen, { checkOnboardingComplete } from '../screens/OnboardingScreen';
+import HomeScreen from '../screens/HomeScreen';
+import ChatListScreen from '../screens/ChatListScreen';
+import ChatScreen from '../screens/ChatScreen';
+
+import {
+  RootStackParamList,
+  AuthStackParamList,
+  MainTabParamList,
+  CampsStackParamList,
+  TrainingStackParamList,
+  MessagesStackParamList,
+} from '../types';
+
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+const AuthStackNav = createNativeStackNavigator<AuthStackParamList>();
+const MainTab = createBottomTabNavigator<MainTabParamList>();
+const CampsStackNav = createNativeStackNavigator<CampsStackParamList>();
+const TrainingStackNav = createNativeStackNavigator<TrainingStackParamList>();
+const MessagesStackNav = createNativeStackNavigator<MessagesStackParamList>();
+
+interface TabIconProps {
+  label: string;
+  focused: boolean;
+}
+
+const TabIcon: React.FC<TabIconProps> = ({ label, focused }) => {
+  const getIcon = (): string => {
+    switch (label) {
+      case 'Home': return '🏠';
+      case 'Camps': return '⚽';
+      case 'Training': return '🏃';
+      case 'Schedule': return '📅';
+      case 'Messages': return '💬';
+      case 'Profile': return '👤';
+      default: return '●';
+    }
+  };
+
+  return (
+    <View style={styles.tabIconContainer}>
+      <Text style={[styles.tabIcon, focused && styles.tabIconFocused]}>
+        {getIcon()}
+      </Text>
+    </View>
+  );
+};
+
+const AuthStack: React.FC = () => (
+  <AuthStackNav.Navigator screenOptions={{ headerShown: false }}>
+    <AuthStackNav.Screen name="Login" component={LoginScreen} />
+  </AuthStackNav.Navigator>
+);
+
+const CampsStack: React.FC = () => (
+  <CampsStackNav.Navigator
+    screenOptions={{
+      headerStyle: { backgroundColor: colors.white },
+      headerTintColor: colors.ink,
+      headerTitleStyle: { fontWeight: typography.weights.semibold },
+      headerShadowVisible: false,
+      headerBackTitleVisible: false,
+    }}
+  >
+    <CampsStackNav.Screen name="Camps" component={CampsScreen} options={{ title: 'Camps & Clinics' }} />
+    <CampsStackNav.Screen name="CampDetail" component={CampDetailScreen} options={{ title: 'Camp Details' }} />
+  </CampsStackNav.Navigator>
+);
+
+const TrainingStack: React.FC = () => (
+  <TrainingStackNav.Navigator
+    screenOptions={{
+      headerStyle: { backgroundColor: colors.white },
+      headerTintColor: colors.ink,
+      headerTitleStyle: { fontWeight: typography.weights.semibold },
+      headerShadowVisible: false,
+      headerBackTitleVisible: false,
+    }}
+  >
+    <TrainingStackNav.Screen name="Trainers" component={TrainersScreen} options={{ title: 'Private Training' }} />
+    <TrainingStackNav.Screen name="TrainerDetail" component={TrainerDetailScreen} options={{ title: 'Trainer Profile' }} />
+  </TrainingStackNav.Navigator>
+);
+
+const MessagesStack: React.FC = () => (
+  <MessagesStackNav.Navigator
+    screenOptions={{
+      headerStyle: { backgroundColor: colors.white },
+      headerTintColor: colors.ink,
+      headerTitleStyle: { fontWeight: typography.weights.semibold },
+      headerShadowVisible: false,
+      headerBackTitleVisible: false,
+    }}
+  >
+    <MessagesStackNav.Screen name="ChatList" component={ChatListScreen} options={{ title: 'Messages' }} />
+    <MessagesStackNav.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
+  </MessagesStackNav.Navigator>
+);
+
+const MainTabs: React.FC = () => (
+  <MainTab.Navigator
+    initialRouteName="HomeTab"
+    screenOptions={{
+      tabBarStyle: {
+        backgroundColor: colors.white,
+        borderTopColor: colors.border,
+        paddingBottom: 8,
+        paddingTop: 8,
+        height: 60,
+      },
+      tabBarActiveTintColor: colors.primary,
+      tabBarInactiveTintColor: colors.gray,
+      tabBarLabelStyle: {
+        fontSize: typography.sizes.xs,
+        fontWeight: typography.weights.medium,
+      },
+      headerShown: false,
+    }}
+  >
+    <MainTab.Screen
+      name="HomeTab"
+      component={HomeScreen}
+      options={{
+        tabBarLabel: 'Home',
+        tabBarIcon: ({ focused }) => <TabIcon label="Home" focused={focused} />,
+        headerShown: true,
+        headerTitle: 'Home',
+        headerStyle: { backgroundColor: colors.white },
+        headerTitleStyle: { fontWeight: typography.weights.semibold },
+        headerTintColor: colors.ink,
+      }}
+    />
+    <MainTab.Screen
+      name="CampsTab"
+      component={CampsStack}
+      options={{
+        tabBarLabel: 'Camps',
+        tabBarIcon: ({ focused }) => <TabIcon label="Camps" focused={focused} />,
+      }}
+    />
+    <MainTab.Screen
+      name="TrainingTab"
+      component={TrainingStack}
+      options={{
+        tabBarLabel: 'Training',
+        tabBarIcon: ({ focused }) => <TabIcon label="Training" focused={focused} />,
+      }}
+    />
+    <MainTab.Screen
+      name="ScheduleTab"
+      component={ScheduleScreen}
+      options={{
+        tabBarLabel: 'Schedule',
+        tabBarIcon: ({ focused }) => <TabIcon label="Schedule" focused={focused} />,
+        headerShown: true,
+        headerTitle: 'My Schedule',
+        headerStyle: { backgroundColor: colors.white },
+        headerTintColor: colors.ink,
+        headerTitleStyle: { fontWeight: typography.weights.semibold },
+        headerShadowVisible: false,
+      }}
+    />
+    <MainTab.Screen
+      name="MessagesTab"
+      component={MessagesStack}
+      options={{
+        tabBarLabel: 'Messages',
+        tabBarIcon: ({ focused }) => <TabIcon label="Messages" focused={focused} />,
+        headerShown: false,
+      }}
+    />
+    <MainTab.Screen
+      name="ProfileTab"
+      component={ProfileScreen}
+      options={{
+        tabBarLabel: 'Profile',
+        tabBarIcon: ({ focused }) => <TabIcon label="Profile" focused={focused} />,
+        headerShown: true,
+        headerTitle: 'Profile',
+        headerStyle: { backgroundColor: colors.white },
+        headerTintColor: colors.ink,
+        headerTitleStyle: { fontWeight: typography.weights.semibold },
+        headerShadowVisible: false,
+      }}
+    />
+  </MainTab.Navigator>
+);
+
+const RootNavigator: React.FC = () => {
+  const { user, isInitialized, isGuest } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const isComplete = await checkOnboardingComplete();
+      setShowOnboarding(!isComplete);
+    };
+    checkOnboarding();
+  }, []);
+
+  if (!isInitialized || showOnboarding === null) {
+    return <LoadingScreen message="Loading..." />;
+  }
+
+  if (showOnboarding) {
+    return <OnboardingScreen onComplete={() => setShowOnboarding(false)} />;
+  }
+
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      {user || isGuest ? (
+        <RootStack.Screen name="Main" component={MainTabs} />
+      ) : (
+        <RootStack.Screen name="Auth" component={AuthStack} />
+      )}
+    </RootStack.Navigator>
+  );
+};
+
+export const AppNavigator: React.FC = () => (
+  <NavigationContainer>
+    <RootNavigator />
+  </NavigationContainer>
+);
+
+const styles = StyleSheet.create({
+  tabIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabIcon: {
+    fontSize: 20,
+    color: colors.gray,
+  },
+  tabIconFocused: {
+    color: colors.primary,
+  },
+});
+
+export default AppNavigator;
